@@ -1,4 +1,5 @@
 package com.accesshub.access_hub.entities;
+import com.accesshub.access_hub.enums.Roles;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -37,12 +38,21 @@ public class User implements UserDetails {
     private  Set<Role> roles = new HashSet<>();
 
 
-    public User(String username, String email, String password, Set<Role> roles, String profileImage) {
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private  List<WorkspaceUser> workspaceUsers = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Workspace> workspaces = new ArrayList<>();
+
+    public User(String username, String email, String password, String profileImage, Set<Role> roles, List<WorkspaceUser> workspaceUsers, List<Workspace> workspaces) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.roles = roles;
         this.profileImage = profileImage;
+        this.roles = roles;
+        this.workspaceUsers = workspaceUsers;
+        this.workspaces = workspaces;
     }
 
     public User() {}
@@ -121,5 +131,25 @@ public class User implements UserDetails {
 
     public List<String> getRolesAtStringList () {
         return this.roles.stream().map(r -> r.getName().name()).toList();
+    }
+
+    public List<Workspace> getWorkspaces() {
+        return workspaces;
+    }
+
+    public void setWorkspaces(List<Workspace> workspaces) {
+        this.workspaces = workspaces;
+    }
+
+    public List<WorkspaceUser> getWorkspaceUsers() {
+        return workspaceUsers;
+    }
+
+    public void setWorkspaceUsers(List<WorkspaceUser> workspaceUsers) {
+        this.workspaceUsers = workspaceUsers;
+    }
+
+    public  boolean isGlobalAdmin() {
+        return  this.roles.stream().anyMatch(r -> r.getName() == Roles.ADMIN);
     }
 }

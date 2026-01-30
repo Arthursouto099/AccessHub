@@ -16,13 +16,11 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import com.accesshub.access_hub.config.token.TokenService;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.naming.AuthenticationException;
 import java.util.Map;
 
 
@@ -48,19 +46,14 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(401).build();
-        }
-
-        User p = (User) authentication.getPrincipal();
-
+    public ResponseEntity<?> me(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(Map.of(
-                "uid", p.getIdUser(),
-                "email", p.getEmail(),
-                "roles", authentication.getAuthorities()
+                "uid", user.getIdUser(),
+                "email", user.getEmail(),
+                "roles", user.getAuthorities()
         ));
     }
+
 
     @PostMapping("/login")
     public  ResponseEntity<UserDefaultResponse> login(@RequestBody @Valid UserLoginDto userLoginDto, HttpServletResponse response) {
@@ -79,7 +72,6 @@ public class AuthController {
 
         return  ResponseEntity
                 .status(HttpStatus.OK).body(UserDefaultResponse.fromEntity(user1));
-
     }
 
 }
